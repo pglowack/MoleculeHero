@@ -1,0 +1,8 @@
+
+*.identcache
+
+*.dcu
+
+*.local
+
+*.res
