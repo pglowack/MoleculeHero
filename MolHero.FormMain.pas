@@ -9,9 +9,8 @@ uses
   FMX.Ani, FMX.MaterialSources, FMX.Controls3D,
   FMX.Viewport3D, FMX.StdCtrls, System.Math.Vectors, FMX.Controls.Presentation,
   FMX.Layouts, FMX.MultiView, FMX.Objects, FMX.ListView.Types, FMX.ListView,
-  // {IFDEF VER300} FMX.ListView.Appearances, {ENDIF}
+  FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
   MolHero.Types, MolHero.Materials, MolHero.MoleculeModel;
-  // FMX.ListView.Adapters.Base;
 
 const
   CAMERA_MAX_Z = -2;
@@ -68,7 +67,6 @@ type
     procedure DoZoom(aIn: boolean);
     procedure ShowAppAbout;
     procedure SetCurrViewMode(const Value: TMoleculeViewMode);
-    property CurrViewMode: TMoleculeViewMode read FCurrViewMode write SetCurrViewMode;
   end;
 
 var
@@ -86,7 +84,7 @@ begin
 
   MultiViewMain.Mode := TMultiViewMode.Drawer;
 
-  CurrViewMode := TMoleculeViewMode.AB;
+  SetCurrViewMode(TMoleculeViewMode.AB);
   SpeedButtonViewModeAB.IsPressed := True;
 
   LoadMoleculeList;
@@ -109,6 +107,7 @@ procedure TFormMain.ListViewMoleculeListItemClick(const Sender: TObject;
   const AItem: TListViewItem);
 begin
   LoadMoleculeByIndex(aItem.Tag);
+  SetCurrViewMode(FCurrViewMode);
   MultiViewMain.HideMaster;
 end;
 
@@ -145,25 +144,21 @@ end;
 procedure TFormMain.SetCurrViewMode(const Value: TMoleculeViewMode);
 var i: integer; sph: TSphere; cyl: TCylinder;
 begin
-  if FCurrViewMode <> Value then
+  FCurrViewMode := Value;
+
+  for i := 0 to DummyModel.ChildrenCount-1 do
   begin
-    FCurrViewMode := Value;
-
-    for i := 0 to DummyModel.ChildrenCount-1 do
+    if DummyModel.Children[i] is TSphere then
     begin
-      if DummyModel.Children[i] is TSphere then
-      begin
-        sph := TSphere(DummyModel.Children[i]);
-        sph.Visible := CurrViewMode in [TMoleculeViewMode.AB, TMoleculeViewMode.A];
-      end
+      sph := TSphere(DummyModel.Children[i]);
+      sph.Visible := FCurrViewMode in [TMoleculeViewMode.AB, TMoleculeViewMode.A];
+    end
 
-      else if DummyModel.Children[i] is TCylinder then
-      begin
-        cyl := TCylinder(DummyModel.Children[i]);
-        cyl.Visible := CurrViewMode in [TMoleculeViewMode.AB, TMoleculeViewMode.B];
-      end
-    end;
-
+    else if DummyModel.Children[i] is TCylinder then
+    begin
+      cyl := TCylinder(DummyModel.Children[i]);
+      cyl.Visible := FCurrViewMode in [TMoleculeViewMode.AB, TMoleculeViewMode.B];
+    end
   end;
 end;
 
@@ -183,17 +178,20 @@ end;
 
 procedure TFormMain.SpeedButtonViewModeABClick(Sender: TObject);
 begin
-  CurrViewMode := TMoleculeViewMode.AB;
+  FCurrViewMode := TMoleculeViewMode.AB;
+  SetCurrViewMode(FCurrViewMode);
 end;
 
 procedure TFormMain.SpeedButtonViewModeAClick(Sender: TObject);
 begin
-  CurrViewMode := TMoleculeViewMode.A;
+  FCurrViewMode := TMoleculeViewMode.A;
+  SetCurrViewMode(FCurrViewMode);
 end;
 
 procedure TFormMain.SpeedButtonViewModeBClick(Sender: TObject);
 begin
-  CurrViewMode := TMoleculeViewMode.B;
+  FCurrViewMode := TMoleculeViewMode.B;
+  SetCurrViewMode(FCurrViewMode);
 end;
 
 procedure TFormMain.SpeedButtonZoomInClick(Sender: TObject);
